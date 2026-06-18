@@ -1,0 +1,16 @@
+{
+  "name": "biblioteka-ssr-client",
+  "version": "1.0.0",
+  "description": "Klient SSR (Express/EJS) - OAuth2 Authorization Code (confidential client)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
+  }
+}

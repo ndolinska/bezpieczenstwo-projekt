@@ -1,0 +1,12 @@
+{
+  "name": "biblioteka-b2b-worker",
+  "version": "1.0.0",
+  "description": "Klient backend-to-backend - OAuth2 Client Credentials (service account)",
+  "main": "src/worker.js",
+  "scripts": {
+    "start": "node src/worker.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2"
+  }
+}

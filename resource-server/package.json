@@ -1,0 +1,14 @@
+{
+  "name": "biblioteka-resource-server",
+  "version": "1.0.0",
+  "description": "Resource Server - API biblioteki chronione OAuth2 (walidacja JWT przez JWKS Keycloak)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "jose": "^5.9.6"
+  }
+}
