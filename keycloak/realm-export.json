@@ -1,0 +1,187 @@
+{
+  "realm": "biblioteka",
+  "enabled": true,
+  "displayName": "Biblioteka OAuth2",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "loginWithEmailAllowed": true,
+
+  "comment_2fa": "Wymuszenie 2FA (TOTP) dla roli admin realizuje przepływ 'browser-2fa' (warunkowy OTP na podstawie roli). Ustawiony jako browserFlow realmu.",
+  "browserFlow": "browser-2fa",
+
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "otpPolicyLookAheadWindow": 1,
+
+  "authenticationFlows": [
+    {
+      "alias": "browser-2fa",
+      "description": "Logowanie przez przeglądarkę z warunkowym 2FA dla roli admin",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "auth-cookie", "authenticatorFlow": false, "requirement": "ALTERNATIVE", "priority": 10, "userSetupAllowed": false },
+        { "authenticator": "identity-provider-redirector", "authenticatorFlow": false, "requirement": "ALTERNATIVE", "priority": 20, "userSetupAllowed": false },
+        { "authenticatorFlow": true, "requirement": "ALTERNATIVE", "priority": 30, "flowAlias": "browser-2fa-forms", "userSetupAllowed": false }
+      ]
+    },
+    {
+      "alias": "browser-2fa-forms",
+      "description": "Formularz login/hasło + warunkowy OTP",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "auth-username-password-form", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 10, "userSetupAllowed": false },
+        { "authenticatorFlow": true, "requirement": "CONDITIONAL", "priority": 20, "flowAlias": "browser-2fa-conditional-otp", "userSetupAllowed": false }
+      ]
+    },
+    {
+      "alias": "browser-2fa-conditional-otp",
+      "description": "OTP wymagany tylko gdy użytkownik ma rolę admin",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "authenticator": "conditional-user-role", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 10, "userSetupAllowed": false, "authenticatorConfig": "admin-role-config" },
+        { "authenticator": "auth-otp-form", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 20, "userSetupAllowed": false }
+      ]
+    }
+  ],
+
+  "authenticatorConfig": [
+    {
+      "alias": "admin-role-config",
+      "config": {
+        "condition.user.role": "admin",
+        "negate": "false"
+      }
+    }
+  ],
+
+  "roles": {
+    "realm": [
+      { "name": "admin",     "description": "Pełne uprawnienia: zarządzanie książkami i użytkownikami" },
+      { "name": "librarian", "description": "Zarządzanie katalogiem książek" },
+      { "name": "reader",    "description": "Przeglądanie katalogu i własne wypożyczenia" }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "rs-api",
+      "name": "Resource Server API (bearer-only)",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "spa-client",
+      "name": "Klient SPA (React) - Authorization Code + PKCE",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:5173"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*"
+      }
+    },
+    {
+      "clientId": "ssr-client",
+      "name": "Klient SSR (Express/EJS) - Authorization Code",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "ssr-client-secret-CHANGE_ME",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3001/*"],
+      "webOrigins": ["http://localhost:3001"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:3001/*"
+      }
+    },
+    {
+      "clientId": "b2b-client",
+      "name": "Klient Backend-to-Backend - Client Credentials",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "b2b-client-secret-CHANGE_ME",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "rs-admin",
+      "name": "Service account RS -> Keycloak Admin API (zarzadzanie userami)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "rs-admin-secret-CHANGE_ME",
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": false
+    }
+  ],
+
+  "users": [
+    {
+      "username": "admin_bib",
+      "enabled": true,
+      "email": "admin@biblioteka.local",
+      "emailVerified": true,
+      "firstName": "Anna",
+      "lastName": "Administrator",
+      "credentials": [
+        { "type": "password", "value": "pass000", "temporary": false }
+      ],
+      "realmRoles": ["admin", "librarian", "reader"]
+    },
+    {
+      "username": "bibliotekarz",
+      "enabled": true,
+      "email": "librarian@biblioteka.local",
+      "emailVerified": true,
+      "firstName": "Bartosz",
+      "lastName": "Bibliotekarz",
+      "credentials": [
+        { "type": "password", "value": "pass000", "temporary": false }
+      ],
+      "realmRoles": ["librarian", "reader"]
+    },
+    {
+      "username": "czytelnik",
+      "enabled": true,
+      "email": "reader@biblioteka.local",
+      "emailVerified": true,
+      "firstName": "Celina",
+      "lastName": "Czytelnik",
+      "credentials": [
+        { "type": "password", "value": "pass000", "temporary": false }
+      ],
+      "realmRoles": ["reader"]
+    },
+    {
+      "username": "service-account-b2b-client",
+      "enabled": true,
+      "serviceAccountClientId": "b2b-client",
+      "realmRoles": ["librarian"]
+    },
+    {
+      "username": "service-account-rs-admin",
+      "enabled": true,
+      "serviceAccountClientId": "rs-admin",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users"]
+      }
+    }
+  ]
+}
