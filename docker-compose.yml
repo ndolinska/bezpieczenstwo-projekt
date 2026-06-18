@@ -1,0 +1,131 @@
+services:
+  # Baza danych wspólna 
+  postgres:
+    image: postgres:16-alpine
+    container_name: biblioteka_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-keycloak}
+      POSTGRES_USER: ${POSTGRES_USER:-keycloak}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-keycloak}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oauth-net
+
+  # Authorization Server - Keycloak
+  # Realm "biblioteka" importowany przy starcie z pliku
+  # keycloak/realm-export.json
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: biblioteka_keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-keycloak}
+      KC_DB_USERNAME: ${POSTGRES_USER:-keycloak}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - oauth-net
+
+  # Resource Server - API biblioteki (walidacja JWT przez JWKS)
+  resource-server:
+    build: ./resource-server
+    container_name: biblioteka_rs
+    environment:
+      PORT: 4000
+      OIDC_ISSUER: http://keycloak:8080/realms/biblioteka
+      OIDC_JWKS_URI: http://keycloak:8080/realms/biblioteka/protocol/openid-connect/certs
+      OIDC_AUDIENCE: account
+      # Dostęp do Keycloak Admin API (zarządzanie userami)
+      KC_BASE: http://keycloak:8080
+      KC_REALM: biblioteka
+      KC_ADMIN_CLIENT_ID: rs-admin
+      KC_ADMIN_CLIENT_SECRET: ${RS_ADMIN_CLIENT_SECRET:-rs-admin-secret-CHANGE_ME}
+    ports:
+      - "4000:4000"
+    depends_on:
+      - keycloak
+    networks:
+      - oauth-net
+
+  # Klient SSR (Express/EJS) - Authorization Code (confidential)
+  ssr-client:
+    build: ./ssr-client
+    container_name: biblioteka_ssr
+    environment:
+      PORT: 3001
+      OIDC_PUBLIC_BASE: http://localhost:8080/realms/biblioteka
+      OIDC_INTERNAL_BASE: http://keycloak:8080/realms/biblioteka
+      OIDC_CLIENT_ID: ssr-client
+      OIDC_CLIENT_SECRET: ${SSR_CLIENT_SECRET:-ssr-client-secret-CHANGE_ME}
+      REDIRECT_URI: http://localhost:3001/callback
+      API_BASE: http://resource-server:4000
+      SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - keycloak
+      - resource-server
+    networks:
+      - oauth-net
+
+  # Klient SPA (React + Vite) - Authorization Code + PKCE (public)
+
+  spa-client:
+    build: ./spa-client
+    container_name: biblioteka_spa
+    environment:
+      VITE_OIDC_AUTHORITY: http://localhost:8080/realms/biblioteka
+      VITE_OIDC_CLIENT_ID: spa-client
+      VITE_REDIRECT_URI: http://localhost:5173/callback
+      VITE_POST_LOGOUT_URI: http://localhost:5173/
+      VITE_API_BASE: http://localhost:4000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - keycloak
+      - resource-server
+    networks:
+      - oauth-net
+
+  # Klient B2B (worker) - Client Credentials (service account)
+  b2b-worker:
+    build: ./b2b-worker
+    container_name: biblioteka_b2b
+    environment:
+      OIDC_TOKEN_URL: http://keycloak:8080/realms/biblioteka/protocol/openid-connect/token
+      OIDC_CLIENT_ID: b2b-client
+      OIDC_CLIENT_SECRET: ${B2B_CLIENT_SECRET:-b2b-client-secret-CHANGE_ME}
+      API_BASE: http://resource-server:4000
+      INTERVAL_MS: 60000
+      REPORT_DIR: /app/reports
+    volumes:
+      - ./b2b-worker/reports:/app/reports
+    depends_on:
+      - keycloak
+      - resource-server
+    networks:
+      - oauth-net
+
+volumes:
+  postgres_data:
+
+networks:
+  oauth-net:
+    driver: bridge
