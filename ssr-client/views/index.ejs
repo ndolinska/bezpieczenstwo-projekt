@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Biblioteka — klient SSR</title></head>
+<body style="font-family:sans-serif;max-width:720px;margin:2rem auto">
+  <h1>Biblioteka — klient SSR</h1>
+  <% if (user) { %>
+    <p>Zalogowano jako <strong><%= user.username %></strong> (role: <%= user.roles.join(', ') %>)</p>
+    <p><a href="/books">Katalog książek</a> · <a href="/my-loans">Moje wypożyczenia</a> · <a href="/logout">Wyloguj</a></p>
+  <% } else { %>
+    <p>Nie jesteś zalogowany.</p>
+    <p><a href="/login">Zaloguj przez Keycloak</a></p>
+  <% } %>
+</body>
+</html>

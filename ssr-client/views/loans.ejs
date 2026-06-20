@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Moje wypożyczenia — Biblioteka SSR</title></head>
+<body style="font-family:sans-serif;max-width:720px;margin:2rem auto">
+  <h1>Moje wypożyczenia</h1>
+  <p><a href="/">← Strona główna</a> · <a href="/books">Katalog</a></p>
+  <% if (!loans.length) { %>
+    <p>Brak wypożyczeń.</p>
+  <% } else { %>
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+      <thead><tr><th>ID</th><th>Książka</th><th>Wypożyczono</th><th>Status</th></tr></thead>
+      <tbody>
+        <% loans.forEach(function(l){ %>
+          <tr><td><%= l.id %></td><td><%= l.bookId %></td><td><%= l.borrowedAt %></td><td><%= l.status %></td></tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+</body>
+</html>

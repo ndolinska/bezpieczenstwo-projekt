@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Katalog — Biblioteka SSR</title></head>
+<body style="font-family:sans-serif;max-width:720px;margin:2rem auto">
+  <h1>Katalog książek</h1>
+  <p><a href="/">← Strona główna</a> · <a href="/my-loans">Moje wypożyczenia</a></p>
+  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+    <thead><tr><th>Tytuł</th><th>Autor</th><th>Rok</th><th>Kategoria</th><th>Egz.</th></tr></thead>
+    <tbody>
+      <% books.forEach(function(b){ %>
+        <tr><td><%= b.title %></td><td><%= b.author %></td><td><%= b.year %></td><td><%= b.category %></td><td><%= b.copies %></td></tr>
+      <% }); %>
+    </tbody>
+  </table>
+</body>
+</html>
