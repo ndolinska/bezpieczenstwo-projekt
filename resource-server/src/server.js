@@ -2,7 +2,7 @@ const express = require('express');
 const { ISSUER, JWKS_URI } = require('./auth');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 
 app.use(express.json());
 
@@ -14,8 +14,9 @@ app.use('/api/books', require('./routes/books'));
 app.use('/api/loans', require('./routes/loans'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/admin', require('./routes/admin')); // zarządzanie userami (proxy do Keycloak Admin API)
+// /api/external/google-books -> Google Books (OAuth2)
+app.use('/api/external', require('./routes/external')); // Google Books API (OAuth2 / proxy)
 
-// TODO (etap integracji): /api/external/google-books -> Google Books (OAuth2)
 
 // Globalna obsługa błędów (m.in. błędy z Keycloak Admin API)
 app.use((err, req, res, next) => {

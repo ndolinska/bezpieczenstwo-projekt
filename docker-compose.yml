@@ -1,12 +1,13 @@
 services:
-  # Baza danych wspólna 
+  # Baza danych wspólna
   postgres:
     image: postgres:16-alpine
     container_name: biblioteka_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-keycloak}
       POSTGRES_USER: ${POSTGRES_USER:-keycloak}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+      # Sekret — wymagany w .env (brak domyślnej wartości w compose)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,19 +19,18 @@ services:
       - oauth-net
 
   # Authorization Server - Keycloak
-  # Realm "biblioteka" importowany przy starcie z pliku
-  # keycloak/realm-export.json
+  # Realm "biblioteka" importowany przy starcie z pliku keycloak/realm-export.json
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: biblioteka_keycloak
     command: ["start-dev", "--import-realm"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN:-admin}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-keycloak}
       KC_DB_USERNAME: ${POSTGRES_USER:-keycloak}
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_HEALTH_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
     ports:
@@ -52,11 +52,13 @@ services:
       OIDC_ISSUER: http://keycloak:8080/realms/biblioteka
       OIDC_JWKS_URI: http://keycloak:8080/realms/biblioteka/protocol/openid-connect/certs
       OIDC_AUDIENCE: account
-      # Dostęp do Keycloak Admin API (zarządzanie userami)
       KC_BASE: http://keycloak:8080
       KC_REALM: biblioteka
       KC_ADMIN_CLIENT_ID: rs-admin
-      KC_ADMIN_CLIENT_SECRET: ${RS_ADMIN_CLIENT_SECRET:-rs-admin-secret-CHANGE_ME}
+      KC_ADMIN_CLIENT_SECRET: ${RS_ADMIN_CLIENT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN:-}
     ports:
       - "4000:4000"
     depends_on:
@@ -73,10 +75,10 @@ services:
       OIDC_PUBLIC_BASE: http://localhost:8080/realms/biblioteka
       OIDC_INTERNAL_BASE: http://keycloak:8080/realms/biblioteka
       OIDC_CLIENT_ID: ssr-client
-      OIDC_CLIENT_SECRET: ${SSR_CLIENT_SECRET:-ssr-client-secret-CHANGE_ME}
+      OIDC_CLIENT_SECRET: ${SSR_CLIENT_SECRET}
       REDIRECT_URI: http://localhost:3001/callback
       API_BASE: http://resource-server:4000
-      SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret}
+      SESSION_SECRET: ${SESSION_SECRET}
     ports:
       - "3001:3001"
     depends_on:
@@ -86,7 +88,6 @@ services:
       - oauth-net
 
   # Klient SPA (React + Vite) - Authorization Code + PKCE (public)
-
   spa-client:
     build: ./spa-client
     container_name: biblioteka_spa
@@ -111,7 +112,7 @@ services:
     environment:
       OIDC_TOKEN_URL: http://keycloak:8080/realms/biblioteka/protocol/openid-connect/token
       OIDC_CLIENT_ID: b2b-client
-      OIDC_CLIENT_SECRET: ${B2B_CLIENT_SECRET:-b2b-client-secret-CHANGE_ME}
+      OIDC_CLIENT_SECRET: ${B2B_CLIENT_SECRET}
       API_BASE: http://resource-server:4000
       INTERVAL_MS: 60000
       REPORT_DIR: /app/reports
