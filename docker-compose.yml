@@ -18,6 +18,16 @@ services:
     networks:
       - oauth-net
 
+  # Przechwytywanie e-maili w dev (SMTP dla Keycloak — reset hasła)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: biblioteka_mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - oauth-net
+
   # Authorization Server - Keycloak
   # Realm "biblioteka" importowany przy starcie z pliku keycloak/realm-export.json
   keycloak:
@@ -40,6 +50,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     networks:
       - oauth-net
 

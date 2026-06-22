@@ -12,6 +12,7 @@ export const userManager = new UserManager({
   client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
   redirect_uri: import.meta.env.VITE_REDIRECT_URI,
   post_logout_redirect_uri: import.meta.env.VITE_POST_LOGOUT_URI,
+  response_type: 'code',
   scope: 'openid profile email',
   // token tylko w pamięci RAM zakładki (bezpieczeństwo - brak persystencji access tokenu)
   userStore: new WebStorageStateStore({ store: window.sessionStorage }),

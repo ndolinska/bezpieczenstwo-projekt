@@ -111,8 +111,23 @@ async function setUserRole(userId, role) {
 }
 
 // Wymusza zmianę hasła przy następnym logowaniu (bez SMTP — demo / dev)
-async function resetPassword(userId) {
-  await kc('PUT', `/users/${userId}`, { requiredActions: ['UPDATE_PASSWORD'] });
+// Wysyła e-mail z linkiem do ustawienia nowego hasła (Keycloak SMTP + execute-actions-email)
+async function resetPassword(userId, options = {}) {
+  const user = await kc('GET', `/users/${userId}`);
+  if (!user.email) {
+    const err = new Error('Użytkownik nie ma adresu e-mail — nie można wysłać linku resetu');
+    err.status = 400;
+    throw err;
+  }
+
+  const clientId = options.clientId || process.env.KC_SPA_CLIENT_ID || 'spa-client';
+  const lifespan = options.lifespan ?? 43200;
+  const qs = new URLSearchParams({
+    client_id: clientId,
+    lifespan: String(lifespan),
+  });
+
+  await kc('PUT', `/users/${userId}/execute-actions-email?${qs}`, ['UPDATE_PASSWORD']);
 }
 
 // Tworzy usera, ustawia hasło tymczasowe i przypisuje rolę realmu
