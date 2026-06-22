@@ -5,7 +5,7 @@ import AlertMessages from './components/AlertMessages';
 import AppHeader from './components/AppHeader';
 import BookCatalog from './components/BookCatalog';
 import LibrarianPanel from './components/LibrarianPanel';
-import LoginScreen from './components/LoginScreen';
+import LoginPage from './components/LoginPage';
 import MyLoans from './components/MyLoans';
 import StatsPanel from './components/StatsPanel';
 
@@ -17,7 +17,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <LoginScreen />;
+    return <LoginPage />;
   }
 
   return (

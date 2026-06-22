@@ -92,7 +92,7 @@ services:
       API_BASE: http://resource-server:4000
       SESSION_SECRET: ${SESSION_SECRET}
     ports:
-      - "3001:3001"
+      - "3031:3001"
     depends_on:
       - keycloak
       - resource-server
