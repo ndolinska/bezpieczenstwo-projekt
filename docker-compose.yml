@@ -88,7 +88,7 @@ services:
       OIDC_INTERNAL_BASE: http://keycloak:8080/realms/biblioteka
       OIDC_CLIENT_ID: ssr-client
       OIDC_CLIENT_SECRET: ${SSR_CLIENT_SECRET}
-      REDIRECT_URI: http://localhost:3001/callback
+      REDIRECT_URI: http://localhost:3031/callback
       API_BASE: http://resource-server:4000
       SESSION_SECRET: ${SESSION_SECRET}
     ports:

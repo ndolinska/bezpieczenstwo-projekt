@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 // Konfiguracja OAuth2 (confidential client - Authorization Code).
 // Issuer wewnątrz sieci dockerowej to http://keycloak:8080, ale

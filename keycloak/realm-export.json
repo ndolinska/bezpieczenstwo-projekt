@@ -116,10 +116,10 @@
       "secret": "ssr-client-secret-CHANGE_ME",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:3001/*"],
-      "webOrigins": ["http://localhost:3001"],
+       "redirectUris": ["http://localhost:3031/*"],
+      "webOrigins": ["http://localhost:3031"],
       "attributes": {
-        "post.logout.redirect.uris": "http://localhost:3001/*"
+        "post.logout.redirect.uris": "http://localhost:3031/*"
       }
     },
     {
