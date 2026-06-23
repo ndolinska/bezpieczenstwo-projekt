@@ -3,15 +3,27 @@ const { createRemoteJWKSet, jwtVerify } = require('jose');
 // Walidacja tokenów OAuth2 / OIDC wystawionych przez Keycloak.
 // Klucze publiczne pobierane z endpointu JWKS realmu (cache w jose).
 
-const ISSUER = process.env.OIDC_ISSUER;
-const JWKS_URI = process.env.OIDC_JWKS_URI;
+function parseIssuers() {
+  const raw = process.env.OIDC_ISSUER;
+  if (raw && raw.trim()) {
+    return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  // SPA (przeglądarka) vs B2B/SSR (sieć docker) — różne iss w tokenie
+  return [
+    'http://localhost:8080/realms/biblioteka',
+    'http://keycloak:8080/realms/biblioteka',
+  ];
+}
 
-// Oczekiwane "audience" tokenu (np. account / rs-api - zależnie od konfiguracji mappera)
-const AUDIENCE = process.env.OIDC_AUDIENCE;
+const ISSUERS = parseIssuers();
+const ISSUER = ISSUERS.join(', ');
+const JWKS_URI = process.env.OIDC_JWKS_URI;
+// Opcjonalnie — Keycloak często nie ma aud w access_token (tylko w id_token)
+const AUDIENCE = process.env.OIDC_AUDIENCE?.trim() || null;
 
 const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
 
-// Middleware: weryfikuje podpis, iss, aud, exp i odkłada payload w req.user
+// Middleware: weryfikuje podpis, iss, exp; aud tylko gdy OIDC_AUDIENCE ustawione
 async function authenticate(req, res, next) {
   const header = req.headers.authorization || '';
   if (!header.startsWith('Bearer ')) {
@@ -19,11 +31,15 @@ async function authenticate(req, res, next) {
   }
   const token = header.slice('Bearer '.length);
 
+  const verifyOptions = {
+    issuer: ISSUERS.length === 1 ? ISSUERS[0] : ISSUERS,
+  };
+  if (AUDIENCE) {
+    verifyOptions.audience = AUDIENCE;
+  }
+
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: ISSUER,
-      audience: AUDIENCE,
-    });
+    const { payload } = await jwtVerify(token, JWKS, verifyOptions);
     req.user = {
       sub: payload.sub,
       username: payload.preferred_username,
@@ -32,12 +48,12 @@ async function authenticate(req, res, next) {
     };
     return next();
   } catch (err) {
-    console.warn('[auth] Odrzucono token:', err.code || err.message);
+    console.warn('[auth] Odrzucono token:', err.code || err.message, err.claim || '');
     return res.status(401).json({ error: 'Nieprawidłowy lub wygasły token' });
   }
 }
 
-// Middleware: wymaga przynajmniej jednej z podanych ról
+// Middleware fabryka: wymaga przynajmniej jednej z podanych ról
 function requireRole(...allowed) {
   return (req, res, next) => {
     const roles = req.user?.roles || [];

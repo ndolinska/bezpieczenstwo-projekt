@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { login, logout, getUser, completeLogin, rolesOf } from '../auth';
 import { api } from '../api';
 import { EMPTY_BOOK, EMPTY_USER } from '../constants';
@@ -20,6 +20,7 @@ export function AppProvider({ children }) {
   const [editingBook, setEditingBook] = useState(null);
   const [newUser, setNewUser] = useState(EMPTY_USER);
   const [authReady, setAuthReady] = useState(false);
+  const callbackHandled = useRef(false);
 
   const roles = useMemo(() => rolesOf(user), [user]);
   const isLibrarian = roles.includes('librarian') || roles.includes('admin');
@@ -29,7 +30,10 @@ export function AppProvider({ children }) {
     (async () => {
       try {
         if (window.location.pathname === '/callback') {
-          await completeLogin();
+          if (!callbackHandled.current) {
+            callbackHandled.current = true;
+            await completeLogin();
+          }
           window.history.replaceState({}, '', '/');
         }
         setUser(await getUser());

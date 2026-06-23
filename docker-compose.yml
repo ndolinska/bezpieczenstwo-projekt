@@ -61,9 +61,8 @@ services:
     container_name: biblioteka_rs
     environment:
       PORT: 4000
-      OIDC_ISSUER: http://keycloak:8080/realms/biblioteka
+      OIDC_ISSUER: http://localhost:8080/realms/biblioteka,http://keycloak:8080/realms/biblioteka
       OIDC_JWKS_URI: http://keycloak:8080/realms/biblioteka/protocol/openid-connect/certs
-      OIDC_AUDIENCE: account
       KC_BASE: http://keycloak:8080
       KC_REALM: biblioteka
       KC_ADMIN_CLIENT_ID: rs-admin
@@ -71,6 +70,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
     ports:
       - "4000:4000"
     depends_on:
