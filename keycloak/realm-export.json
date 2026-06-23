@@ -21,7 +21,6 @@
     "auth": "false"
   },
 
-  "comment_2fa": "Wymuszenie 2FA (TOTP) dla roli admin realizuje przepływ 'browser-2fa' (warunkowy OTP na podstawie roli). Ustawiony jako browserFlow realmu.",
   "browserFlow": "browser-2fa",
 
   "otpPolicyType": "totp",
