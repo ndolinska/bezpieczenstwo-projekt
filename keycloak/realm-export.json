@@ -192,7 +192,7 @@
       "enabled": true,
       "serviceAccountClientId": "rs-admin",
       "clientRoles": {
-        "realm-management": ["manage-users", "view-users", "query-users"]
+          "realm-management": ["realm-admin"]
       }
     }
   ]

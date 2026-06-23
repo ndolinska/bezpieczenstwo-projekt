@@ -60,7 +60,7 @@ async function kc(method, path, body) {
 
 const APP_ROLES = ['admin', 'librarian', 'reader'];
 
-// Operacje wykorzystywane przez routes/admin.js 
+// --- Operacje wykorzystywane przez routes/admin.js ---
 
 async function listUsers() {
   const users = await kc('GET', '/users');
@@ -98,8 +98,13 @@ async function updateUser(id, { email, firstName, lastName, enabled }) {
 }
 
 async function setUserRole(userId, role) {
-  const current = await kc('GET', `/users/${userId}/role-mappings/realm`);
-  const toRemove = current.filter((r) => APP_ROLES.includes(r.name));
+  const current = await getUserRealmRoleNames(userId);
+  if (current.length === 1 && current[0] === role) {
+    return getUser(userId);
+  }
+
+  const currentMappings = await kc('GET', `/users/${userId}/role-mappings/realm`);
+  const toRemove = currentMappings.filter((r) => APP_ROLES.includes(r.name));
   if (toRemove.length) {
     await kc('DELETE', `/users/${userId}/role-mappings/realm`, toRemove);
   }
@@ -110,7 +115,6 @@ async function setUserRole(userId, role) {
   return getUser(userId);
 }
 
-// Wymusza zmianę hasła przy następnym logowaniu (bez SMTP — demo / dev)
 // Wysyła e-mail z linkiem do ustawienia nowego hasła (Keycloak SMTP + execute-actions-email)
 async function resetPassword(userId, options = {}) {
   const user = await kc('GET', `/users/${userId}`);
