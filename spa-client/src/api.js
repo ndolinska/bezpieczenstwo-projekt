@@ -35,7 +35,6 @@ function booksQuery({ q, author, category } = {}) {
 export const api = {
   // książki
   listBooks: (filters) => handle(client.get(booksQuery(filters))),
-  getBook: (id) => handle(client.get(`/api/books/${id}`)),
   createBook: (book) => handle(client.post('/api/books', book)),
   updateBook: (id, book) => handle(client.put(`/api/books/${id}`, book)),
   deleteBook: (id) => handle(client.delete(`/api/books/${id}`)),
@@ -50,7 +49,6 @@ export const api = {
   stats: () => handle(client.get('/api/stats')),
   // zarządzanie użytkownikami (proxy Keycloak Admin API)
   listUsers: () => handle(client.get('/api/admin/users')),
-  getUser: (id) => handle(client.get(`/api/admin/users/${id}`)),
   createUser: (payload) => handle(client.post('/api/admin/users', payload)),
   updateUser: (id, payload) => handle(client.patch(`/api/admin/users/${id}`, payload)),
   setUserRole: (id, role) => handle(client.put(`/api/admin/users/${id}/role`, { role })),

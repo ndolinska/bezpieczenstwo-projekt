@@ -27,14 +27,6 @@ router.get('/users', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// GET /api/admin/users/:id - szczegóły użytkownika
-router.get('/users/:id', async (req, res, next) => {
-  try {
-    const user = await kcAdmin.getUser(req.params.id);
-    res.json(mapUser(user));
-  } catch (e) { next(e); }
-});
-
 // POST /api/admin/users - załóż usera i przypisz rolę
 router.post('/users', async (req, res, next) => {
   try {

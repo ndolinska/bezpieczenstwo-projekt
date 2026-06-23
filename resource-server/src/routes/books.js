@@ -17,13 +17,6 @@ router.get('/', requireRole('reader', 'librarian', 'admin'), (req, res) => {
   res.json(result);
 });
 
-// GET /api/books/:id - reader+
-router.get('/:id', requireRole('reader', 'librarian', 'admin'), (req, res) => {
-  const book = store.books.find((b) => b.id === Number(req.params.id));
-  if (!book) return res.status(404).json({ error: 'Nie znaleziono książki' });
-  res.json(book);
-});
-
 // POST /api/books - dodanie - librarian+
 router.post('/', requireRole('librarian', 'admin'), (req, res) => {
   const { isbn, title, author, year, category, copies } = req.body || {};
