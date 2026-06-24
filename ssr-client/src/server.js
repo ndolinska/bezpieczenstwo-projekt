@@ -25,7 +25,7 @@ const cfg = {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-session-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax', secure: false }, // secure:true za HTTPS
@@ -72,8 +72,15 @@ app.get('/callback', async (req, res) => {
     );
     req.session.tokens = data;
     // dekodowanie payloadu id_tokenu tylko do wyświetlenia nazwy użytkownika
-    const payload = JSON.parse(Buffer.from(data.id_token.split('.')[1], 'base64').toString());
-    req.session.userinfo = { username: payload.preferred_username, roles: payload.realm_access?.roles || [] };
+   const decodeJwtPayload = (token) =>
+      JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    const idPayload = decodeJwtPayload(data.id_token);
+    const accessPayload = decodeJwtPayload(data.access_token);
+    // Role są w access_token (jak w SPA); id_token służy głównie do tożsamości
+    req.session.userinfo = {
+      username: idPayload.preferred_username,
+      roles: accessPayload.realm_access?.roles || [],
+    };
     res.redirect('/books');
   } catch (err) {
     console.error('[ssr] Błąd wymiany kodu:', err.response?.data || err.message);
