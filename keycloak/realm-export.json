@@ -61,7 +61,7 @@
       "builtIn": false,
       "authenticationExecutions": [
         { "authenticator": "conditional-user-role", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 10, "userSetupAllowed": false, "authenticatorConfig": "admin-role-config" },
-        { "authenticator": "auth-otp-form", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 20, "userSetupAllowed": false }
+        { "authenticator": "auth-conditional-otp-form", "authenticatorFlow": false, "requirement": "REQUIRED", "priority": 20, "userSetupAllowed": false, "authenticatorConfig": "admin-otp-config" }
       ]
     }
   ],
@@ -70,8 +70,14 @@
     {
       "alias": "admin-role-config",
       "config": {
-        "condition.user.role": "admin",
+        "condUserRole": "admin",
         "negate": "false"
+      }
+    },
+    {
+      "alias": "admin-otp-config",
+      "config": {
+        "defaultOtpOutcome": "force"
       }
     }
   ],
